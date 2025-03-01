@@ -20,6 +20,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
+import { Notify, useMeta } from 'quasar'
+
+useMeta({
+  title: 'Login | ERP.DDC'
+})
 
 const authStore = useAuthStore()
 const email = ref('')
@@ -29,8 +34,12 @@ const handleLogin = async () => {
   try {
     await authStore.signIn(email.value, password.value)
   } catch (error) {
-    // Handle error (show toast notification, etc.)
-    console.error('Login failed:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Login failed'
+    Notify.create({
+      type: 'negative',
+      message: errorMessage,
+      position: 'top'
+    })
   }
 }
 </script>

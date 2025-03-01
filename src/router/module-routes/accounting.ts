@@ -9,7 +9,7 @@ const accountingRoutes = [
     title: 'Dashboard',
     icon: 'dashboard',
     component: () => import('src/pages/accounting/AccountingDashboard.vue'),
-    meta: { requiresAuth: true, module: moduleType },
+    meta: { requiresAuth: true, module: moduleType, title: 'Accounting Dashboard' },
   },
   {
     path: '/accounting/coa',
@@ -17,7 +17,7 @@ const accountingRoutes = [
     title: 'Chart of Accounts',
     icon: 'list_alt',
     component: () => import('src/pages/accounting/ChartOfAccounts.vue'),
-    meta: { requiresAuth: true, module: moduleType },
+    meta: { requiresAuth: true, module: moduleType, title: 'Chart of Accounts' },
   },
 ]
 

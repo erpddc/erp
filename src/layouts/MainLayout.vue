@@ -12,6 +12,32 @@
           Title
         </q-toolbar-title>
 
+        <q-btn-dropdown flat dense class="bg-blue-7 q-px-md text-white rounded-borders q-mr-md">
+          <template v-slot:label>
+            <q-avatar size="26px" color="accent" text-color="white">
+              {{ userInitial }}
+            </q-avatar>
+          </template>
+
+          <q-list>
+            <q-item clickable v-close-popup @click="navigateToProfile">
+              <q-item-section avatar>
+                <q-icon name="person" />
+              </q-item-section>
+              <q-item-section>Profile</q-item-section>
+            </q-item>
+
+            <q-separator />
+
+            <q-item clickable v-close-popup @click="handleLogout">
+              <q-item-section avatar>
+                <q-icon name="logout" />
+              </q-item-section>
+              <q-item-section>Logout</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+
         <q-btn dense flat round icon="apps" @click="toggleRightDrawer" />
       </q-toolbar>
     </q-header>
@@ -21,7 +47,7 @@
         <q-item-label header>{{ moduleLabel }}</q-item-label>
         <EssentialLink v-for="link in filteredAllRoutes" :key="link.title" v-bind="link" />
       </q-list>
-      <pre>{{ filteredAllRoutes }}</pre>
+      <!-- <pre>{{ filteredAllRoutes }}</pre> -->
     </q-drawer>
 
 
@@ -57,7 +83,9 @@ import allRoutes from 'src/router/module-routes/all'
 import { modules } from 'src/config/modules'
 import type { ModuleName, Module } from 'src/config/modules'
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from 'src/stores/auth'
+import { useMeta } from 'quasar'
 
 const leftDrawerOpen = ref(false)
 const rightDrawerOpen = ref(false)
@@ -73,6 +101,8 @@ const toggleRightDrawer = () => {
 const miniState = ref(true);
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 
 // Initialize with current route
 const getCurrentModule = (): Module | undefined => {
@@ -109,4 +139,33 @@ function changeMenu(path: string, label: string, name: ModuleName) {
   moduleLabel.value = label;
   module.value = name;
 }
+
+const userInitial = computed(() => {
+  // return authStore.user?.email?.charAt(0).toUpperCase() || '?'
+  return authStore.user?.email?.substring(0, 2).toUpperCase() || '?'
+})
+
+const navigateToProfile = async () => {
+  await router.push('/profile')
+}
+
+const handleLogout = async () => {
+  try {
+    await authStore.signOut()
+    await router.push('/login')
+  } catch (error) {
+    console.error('Logout failed:', error)
+  }
+}
+
+const APP_NAME = 'ERP.DDC'
+
+// Setup meta
+useMeta(() => {
+  const title = route.meta.title as string
+  return {
+    // If there's a title in route meta, append it to app name, otherwise just use app name
+    title: title ? `${title} | ${APP_NAME}` : APP_NAME
+  }
+})
 </script>
