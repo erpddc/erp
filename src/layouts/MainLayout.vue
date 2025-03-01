@@ -1,102 +1,112 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+  <q-layout view="hHh lpR fFf">
+
+    <q-header reveal bordered class="bg-primary text-white">
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title>
-          Quasar App
+          <q-avatar>
+            <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
+          </q-avatar>
+          Title
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <q-btn dense flat round icon="apps" @click="toggleRightDrawer" />
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
       <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
-
-        <EssentialLink
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
+        <q-item-label header>{{ moduleLabel }}</q-item-label>
+        <EssentialLink v-for="link in filteredAllRoutes" :key="link.title" v-bind="link" />
       </q-list>
+      <pre>{{ filteredAllRoutes }}</pre>
+    </q-drawer>
+
+
+    <q-drawer v-model="rightDrawerOpen" side="right" overlay bordered show-if-above :mini="miniState"
+      @mouseenter="miniState = false" @mouseleave="miniState = true" :width="200" :breakpoint="500"
+      class="bg-primary text-white" persistent>
+      <q-list>
+        <q-item v-for="moduleItem in modules" :key="moduleItem.name" clickable :to="moduleItem.path"
+          :active="moduleItem.path === '/' ? $route.path === '/' : $route.path.startsWith(moduleItem.path)"
+          active-class="bg-secondary"
+          @click="changeMenu(moduleItem.path, moduleItem.label, moduleItem.name as ModuleName)">
+          <q-item-section avatar>
+            <q-icon :name="moduleItem.icon" />
+          </q-item-section>
+          <q-item-section>
+            {{ moduleItem.label }}
+          </q-item-section>
+        </q-item>
+      </q-list>
+
     </q-drawer>
 
     <q-page-container>
       <router-view />
     </q-page-container>
+
   </q-layout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import EssentialLink, { type EssentialLinkProps } from 'components/EssentialLink.vue';
+import EssentialLink from 'src/components/EssentialLink.vue'
+import allRoutes from 'src/router/module-routes/all'
+import { modules } from 'src/config/modules'
+import type { ModuleName, Module } from 'src/config/modules'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const linksList: EssentialLinkProps[] = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
+const leftDrawerOpen = ref(false)
+const rightDrawerOpen = ref(false)
+
+const toggleLeftDrawer = () => {
+  leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
+const toggleRightDrawer = () => {
+  rightDrawerOpen.value = !rightDrawerOpen.value
+}
+
+const miniState = ref(true);
+
+const route = useRoute()
+
+// Initialize with current route
+const getCurrentModule = (): Module | undefined => {
+  if (route.path === '/') {
+    return modules[0] // home module
   }
-];
+  // Find the module with the longest matching path
+  const matchedModules = modules
+    .filter(m => m.path !== '/' && route.path.startsWith(m.path))
+    .sort((a, b) => b.path.length - a.path.length)
 
-const leftDrawerOpen = ref(false);
+  return matchedModules.length > 0 ? matchedModules[0] : modules[0]
+}
 
-function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
+const currentModule = getCurrentModule()
+const moduleLabel = ref(currentModule?.label ?? 'Home / Setup')
+const module = ref<ModuleName>(currentModule?.name ?? 'home')
+
+// Watch for route changes
+watch(
+  () => route.path,
+  () => {
+    const newModule = getCurrentModule()
+    moduleLabel.value = newModule?.label ?? 'Home / Setup'
+    module.value = newModule?.name ?? 'home'
+  }
+)
+
+const filteredAllRoutes = computed(() => {
+  return allRoutes.filter(item => item.meta.module === module.value)
+})
+
+function changeMenu(path: string, label: string, name: ModuleName) {
+  moduleLabel.value = label;
+  module.value = name;
 }
 </script>
