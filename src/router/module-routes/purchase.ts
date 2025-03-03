@@ -9,7 +9,7 @@ const purchaseRoutes = [
     title: 'Dashboard',
     icon: 'dashboard',
     component: () => import('src/pages/purchase/PurchaseDashboard.vue'),
-    meta: { requiresAuth: true, module: moduleType },
+    meta: { requiresAuth: true, module: moduleType, title: 'Purchase Dashboard' },
   },
   {
     path: '/purchase/vendors',
@@ -17,7 +17,7 @@ const purchaseRoutes = [
     title: 'Vendors & Suppliers',
     icon: 'groups',
     component: () => import('src/pages/purchase/VendorsSuppliers.vue'),
-    meta: { requiresAuth: true, module: moduleType },
+    meta: { requiresAuth: true, module: moduleType, title: 'Vendoers & Suppliers' },
   },
 ]
 

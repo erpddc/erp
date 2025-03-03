@@ -1,15 +1,21 @@
 <template>
   <q-layout view="hHh lpR fFf">
-
     <q-header reveal bordered class="bg-primary text-white">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title>
-          <q-avatar>
-            <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
-          </q-avatar>
-          Title
+          <img src="/ddc_white.png" style="width: 50px; height: auto; margin-right: 30px" />
+          <span
+            style="
+              color: khaki;
+              font-size: 14px;
+              text-transform: uppercase;
+              font-weight: bold;
+              letter-spacing: 2px;
+            "
+            >{{ route.meta.title || APP_NAME }}</span
+          >
         </q-toolbar-title>
 
         <q-btn-dropdown flat dense class="bg-blue-7 q-px-md text-white rounded-borders q-mr-md">
@@ -42,23 +48,44 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
-      <q-list>
-        <q-item-label header>{{ moduleLabel }}</q-item-label>
-        <EssentialLink v-for="link in filteredAllRoutes" :key="link.title" v-bind="link" />
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered :width="180">
+      <q-list bordered dense separator class="q-py-none">
+        <q-item-label header class="q-py-sm">{{ moduleLabel }}</q-item-label>
+        <EssentialLink
+          v-for="link in filteredAllRoutes"
+          :key="link.title"
+          v-bind="link"
+          class="q-py-xs"
+        />
       </q-list>
-      <!-- <pre>{{ filteredAllRoutes }}</pre> -->
     </q-drawer>
 
-
-    <q-drawer v-model="rightDrawerOpen" side="right" overlay bordered show-if-above :mini="miniState"
-      @mouseenter="miniState = false" @mouseleave="miniState = true" :width="200" :breakpoint="500"
-      class="bg-primary text-white" persistent>
+    <q-drawer
+      v-model="rightDrawerOpen"
+      side="right"
+      overlay
+      bordered
+      show-if-above
+      :mini="miniState"
+      @mouseenter="miniState = false"
+      @mouseleave="miniState = true"
+      :width="200"
+      :breakpoint="500"
+      class="bg-primary text-white"
+      persistent
+    >
       <q-list>
-        <q-item v-for="moduleItem in modules" :key="moduleItem.name" clickable :to="moduleItem.path"
-          :active="moduleItem.path === '/' ? $route.path === '/' : $route.path.startsWith(moduleItem.path)"
-          active-class="bg-secondary"
-          @click="changeMenu(moduleItem.path, moduleItem.label, moduleItem.name as ModuleName)">
+        <q-item
+          v-for="moduleItem in modules"
+          :key="moduleItem.name"
+          clickable
+          :to="moduleItem.path"
+          :active="
+            moduleItem.path === '/' ? $route.path === '/' : $route.path.startsWith(moduleItem.path)
+          "
+          active-class="bg-secondary text-white"
+          @click="changeMenu(moduleItem.path, moduleItem.label, moduleItem.name as ModuleName)"
+        >
           <q-item-section avatar>
             <q-icon :name="moduleItem.icon" />
           </q-item-section>
@@ -67,13 +94,11 @@
           </q-item-section>
         </q-item>
       </q-list>
-
     </q-drawer>
 
     <q-page-container>
       <router-view />
     </q-page-container>
-
   </q-layout>
 </template>
 
@@ -98,7 +123,7 @@ const toggleRightDrawer = () => {
   rightDrawerOpen.value = !rightDrawerOpen.value
 }
 
-const miniState = ref(true);
+const miniState = ref(true)
 
 const route = useRoute()
 const router = useRouter()
@@ -111,7 +136,7 @@ const getCurrentModule = (): Module | undefined => {
   }
   // Find the module with the longest matching path
   const matchedModules = modules
-    .filter(m => m.path !== '/' && route.path.startsWith(m.path))
+    .filter((m) => m.path !== '/' && route.path.startsWith(m.path))
     .sort((a, b) => b.path.length - a.path.length)
 
   return matchedModules.length > 0 ? matchedModules[0] : modules[0]
@@ -128,16 +153,16 @@ watch(
     const newModule = getCurrentModule()
     moduleLabel.value = newModule?.label ?? 'Home / Setup'
     module.value = newModule?.name ?? 'home'
-  }
+  },
 )
 
 const filteredAllRoutes = computed(() => {
-  return allRoutes.filter(item => item.meta.module === module.value)
+  return allRoutes.filter((item) => item.meta.module === module.value)
 })
 
 function changeMenu(path: string, label: string, name: ModuleName) {
-  moduleLabel.value = label;
-  module.value = name;
+  moduleLabel.value = label
+  module.value = name
 }
 
 const userInitial = computed(() => {
@@ -165,7 +190,7 @@ useMeta(() => {
   const title = route.meta.title as string
   return {
     // If there's a title in route meta, append it to app name, otherwise just use app name
-    title: title ? `${title} | ${APP_NAME}` : APP_NAME
+    title: title ? `${title} | ${APP_NAME}` : APP_NAME,
   }
 })
 </script>

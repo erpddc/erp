@@ -9,7 +9,7 @@ const homeRoutes = [
     title: 'Main Dashboard',
     icon: 'home',
     component: () => import('src/pages/IndexPage.vue'),
-    meta: { requiresAuth: true, module: moduleType },
+    meta: { requiresAuth: true, module: moduleType, title: 'Home' },
   },
   {
     path: 'settings',
@@ -17,7 +17,7 @@ const homeRoutes = [
     title: 'Settings',
     icon: 'settings',
     component: () => import('src/pages/setup/SettingPage.vue'),
-    meta: { requiresAuth: true, module: moduleType },
+    meta: { requiresAuth: true, module: moduleType, title: 'Setting Page' },
   },
 ]
 
