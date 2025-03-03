@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    Accounting
+    Collection Dashboard
   </q-page>
 </template>
 

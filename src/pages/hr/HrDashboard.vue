@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    Accounting
+    HR Dashboard
   </q-page>
 </template>
 

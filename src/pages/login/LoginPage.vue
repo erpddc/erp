@@ -1,12 +1,14 @@
 <template>
+  <div class="erp" :style="`transform: translate(-50%, ${yt});`">ERP</div>
   <div class="login-container">
-    <form @submit.prevent="handleLogin" class="login-form">
-      <h2>Login</h2>
-      <div class="form-group">
+    <form @submit.prevent="handleLogin" class="login-form text-center bg-white">
+
+      <img src="/public/ddc.svg" alt="DDC Logo" style="width: 75%; margin: 30px auto;">
+      <div class="form-group text-left">
         <label for="email">Email</label>
         <input type="email" id="email" v-model="email" required />
       </div>
-      <div class="form-group">
+      <div class="form-group left">
         <label for="password">Password</label>
         <input type="password" id="password" v-model="password" required />
       </div>
@@ -21,6 +23,14 @@
 import { ref } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
 import { Notify, useMeta } from 'quasar'
+
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
+console.log($q)
+
+const yt = ref('-25%');
+if ($q.screen.lg) yt.value = '0%'
 
 useMeta({
   title: 'Login | ERP.DDC'
@@ -88,5 +98,15 @@ button {
 
 button:disabled {
   background-color: #cccccc;
+}
+
+.erp {
+  position: absolute;
+  z-index: -1;
+  color: #efefef;
+  font-size: 300px;
+  left: 50%;
+  transform: translate(-50%, -25%);
+  font-weight: 900;
 }
 </style>

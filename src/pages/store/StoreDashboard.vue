@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    Accounting
+    Store Dashboard
   </q-page>
 </template>
 

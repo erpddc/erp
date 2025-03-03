@@ -1,5 +1,5 @@
 <template>
   <q-page class="q-pa-md">
-    Chart of Accounts
+    Payments
   </q-page>
 </template>

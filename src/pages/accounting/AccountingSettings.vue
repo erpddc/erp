@@ -1,5 +1,5 @@
 <template>
   <q-page class="q-pa-md">
-    Chart of Accounts
+    Accounting Settings
   </q-page>
 </template>
