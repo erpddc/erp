@@ -18,9 +18,9 @@
           >
         </q-toolbar-title>
 
-        <q-btn-dropdown flat dense class="bg-blue-7 q-px-md text-white rounded-borders q-mr-md">
+        <q-btn-dropdown flat dense class="bg-blue-7 q-px-sm text-white rounded-borders q-mr-md">
           <template v-slot:label>
-            <q-avatar size="26px" color="accent" text-color="white">
+            <q-avatar size="20px" color="accent" text-color="white">
               {{ userInitial }}
             </q-avatar>
           </template>
@@ -48,8 +48,8 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered :width="180">
-      <q-list bordered dense separator class="q-py-none">
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered :width="200">
+      <q-list dense separator class="q-py-none">
         <q-item-label header class="q-py-sm">{{ moduleLabel }}</q-item-label>
         <EssentialLink
           v-for="link in filteredAllRoutes"
