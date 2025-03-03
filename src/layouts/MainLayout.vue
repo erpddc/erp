@@ -174,33 +174,38 @@ useMeta(() => {
 
 <style>
 .custom-drawer {
-  /* Hide scrollbar by default but maintain functionality */
-  scrollbar-width: thin;
-  /* For Firefox */
 
-  /* For Webkit browsers (Chrome, Safari, etc.) */
+  /* Hide scrollbar completely by default */
   &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
+    width: 0;
     background: transparent;
   }
 
-  &::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 4px;
-  }
-
-  /* Show scrollbar on hover */
+  /* Show thin scrollbar only on hover */
   &:hover {
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
     &::-webkit-scrollbar-thumb {
       background: rgba(144, 144, 144, 0.4);
+      border-radius: 4px;
     }
 
     &::-webkit-scrollbar-thumb:hover {
       background: rgba(144, 144, 144, 0.6);
     }
+  }
+
+  /* For Firefox */
+  scrollbar-width: none;
+
+  &:hover {
+    scrollbar-width: thin;
   }
 }
 </style>
