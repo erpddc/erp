@@ -183,11 +183,11 @@ const fetchProjects = async () => {
         banks:BANKS!PROJECT_ID(*)
       `,
       )
-      .eq('USER_ID', user.value?.id)
       .order('CREATED_AT', { ascending: false })
 
     if (error) throw error
     projects.value = data
+    console.log('projects', projects.value)
   } catch (err) {
     console.error(err)
     $q.notify({

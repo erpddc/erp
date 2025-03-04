@@ -114,13 +114,19 @@ import EssentialLink from 'src/components/EssentialLink.vue'
 import allRoutes from 'src/router/module-routes/all'
 import { modules } from 'src/config/modules'
 import type { ModuleName, Module } from 'src/config/modules'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth'
 import { useMeta } from 'quasar'
 
 const leftDrawerOpen = ref(false)
 const rightDrawerOpen = ref(false)
+const authStore = useAuthStore()
+
+// Initialize auth store when component is mounted
+onMounted(async () => {
+  await authStore.initialize()
+})
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -134,7 +140,6 @@ const miniState = ref(true)
 
 const route = useRoute()
 const router = useRouter()
-const authStore = useAuthStore()
 
 // Initialize with current route
 const getCurrentModule = (): Module | undefined => {
@@ -173,7 +178,6 @@ function changeMenu(path: string, label: string, name: ModuleName) {
 }
 
 const userInitial = computed(() => {
-  // return authStore.user?.email?.charAt(0).toUpperCase() || '?'
   return authStore.user?.email?.substring(0, 2).toUpperCase() || '?'
 })
 

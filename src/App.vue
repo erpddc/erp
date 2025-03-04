@@ -4,11 +4,11 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useAuthUser } from 'src/composables/useAuthUser'
+import { useAuthStore } from 'src/stores/auth'
 
-const { initialize } = useAuthUser()
+const authStore = useAuthStore()
 
 onMounted(async () => {
-  await initialize()
+  await authStore.initialize()
 })
 </script>

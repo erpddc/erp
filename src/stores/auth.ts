@@ -8,8 +8,11 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const loading = ref(false)
   const router = useRouter()
+  const isInitialized = ref(false)
 
   const initialize = async () => {
+    if (isInitialized.value) return
+
     try {
       // Get initial session
       const {
@@ -24,6 +27,8 @@ export const useAuthStore = defineStore('auth', () => {
       supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
         user.value = session?.user ?? null
       })
+
+      isInitialized.value = true
     } catch (error) {
       console.error('Auth initialization error:', error)
     }

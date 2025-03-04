@@ -21,7 +21,7 @@ const accountingRoutes = [
     meta: { requiresAuth: true, module: moduleType, title: 'Chart of Accounts' },
   },
   {
-    path: '/accounting/budget',
+    path: '/accounting/ob',
     name: 'budget',
     title: 'Opening Balance',
     icon: 'balance',
