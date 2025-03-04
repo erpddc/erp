@@ -32,7 +32,7 @@ const homeRoutes = [
     name: 'fiscals',
     title: 'Fiscal Years',
     icon: 'calendar_month',
-    component: () => import('src/pages/setup/SettingPage.vue'),
+    component: () => import('src/pages/setup/FiscalYears.vue'),
     meta: { requiresAuth: true, module: moduleType, title: 'Fiscal Years' },
   },
   {

@@ -1,11 +1,20 @@
 <template>
-  <q-separator v-if="subheader" style="height: 5px;" />
-  <q-item-label v-if="subheader" header class="q-pb-xs q-pt-md"
-    style="font-size: 10px; text-transform: uppercase; font-weight: bold;">{{ subheader }}</q-item-label>
-  <q-item :to="path" exact clickable dense v-ripple>
-    <q-item-section v-if="icon" side class="q-pr-sm" style="min-width: 24px">
-      <q-icon :name="icon" size="xs" />
-    </q-item-section>
+  <q-separator v-if="subheader" style="height: 5px" />
+  <q-item-label
+    v-if="subheader"
+    header
+    class="q-pb-xs q-pt-md"
+    style="font-size: 10px; text-transform: uppercase; font-weight: bold"
+    >{{ subheader }}</q-item-label
+  >
+  <q-item
+    :to="{ name: name || '', path: path || '' }"
+    :active-class="link ? 'text-primary' : ''"
+    clickable
+    dense
+    v-ripple
+  >
+    <q-item-section v-if="icon" side> <q-icon :name="icon" style="width: 12px" /> </q-item-section>
     <q-item-section>
       <q-item-label style="font-size: 13px">{{ title }}</q-item-label>
       <q-item-label v-if="caption" caption style="font-size: 11px">{{ caption }}</q-item-label>
@@ -14,19 +23,35 @@
 </template>
 
 <script setup lang="ts">
-export interface EssentialLinkProps {
-  title: string
-  caption?: string
-  path?: string
-  icon?: string
-  subheader?: string
+import type { RouteRecordRaw } from 'vue-router'
 
+interface RouteMeta {
+  title?: string
+  icon?: string
+  requiresAuth?: boolean
+  [key: string]: unknown
 }
 
-withDefaults(defineProps<EssentialLinkProps>(), {
+interface Props {
+  title: string
+  caption?: string | undefined
+  link?: string | undefined
+  icon?: string | undefined
+  path?: string | undefined
+  name?: string | undefined
+  component?: RouteRecordRaw['component'] | undefined
+  meta?: RouteMeta | undefined
+  subheader?: string | undefined
+}
+
+withDefaults(defineProps<Props>(), {
   caption: '',
-  path: '#',
+  link: '#',
   icon: '',
-  subheader: ''
+  path: '',
+  name: '',
+  component: () => undefined,
+  meta: () => ({}),
+  subheader: '',
 })
 </script>

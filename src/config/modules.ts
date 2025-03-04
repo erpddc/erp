@@ -21,7 +21,7 @@ export const modules: Module[] = [
   { name: 'purchase', label: 'Purchase', path: '/purchase', icon: 'receipt_long' },
   { name: 'sales', label: 'Sales', path: '/sales', icon: 'point_of_sale' },
   { name: 'store', label: 'Store', path: '/store', icon: 'shelves' },
-  { name: 'hr', label: 'HR', path: '/hr', icon: 'groups' },
+  //{ name: 'hr', label: 'HR', path: '/hr', icon: 'groups' },
   { name: 'collection', label: 'Collection', path: '/collection', icon: 'local_shipping' },
   { name: 'production', label: 'Production', path: '/production', icon: 'factory' },
 ]
