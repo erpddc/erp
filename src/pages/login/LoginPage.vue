@@ -12,7 +12,15 @@
         <label for="password">Password</label>
         <input type="password" id="password" v-model="password" required />
       </div>
-      <button type="submit" :disabled="authStore.loading">
+      <div class="form-group left">
+        <label for="fiscalYear">Fiscal Year</label>
+        <select id="fiscalYear" v-model="selectedFiscalYear" required class="fiscal-select">
+          <option v-for="fy in fiscalYears" :key="fy.ID" :value="fy">
+            {{ fy.NAME }}
+          </option>
+        </select>
+      </div>
+      <button type="submit" :disabled="authStore.loading || !selectedFiscalYear">
         {{ authStore.loading ? 'Loading...' : 'Login' }}
       </button>
     </form>
@@ -20,11 +28,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
 import { Notify, useMeta } from 'quasar'
-
 import { useQuasar } from 'quasar'
+import { supabase } from 'src/boot/supabase'
+import type { Fiscal } from 'src/models/Fiscal'
 
 const $q = useQuasar()
 console.log($q)
@@ -39,10 +48,46 @@ useMeta({
 const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
+const fiscalYears = ref<Fiscal[]>([])
+const selectedFiscalYear = ref<Fiscal | null>(null)
+
+onMounted(async () => {
+  try {
+    const { data, error } = await supabase
+      .from('FISCALS')
+      .select('*')
+      .order('START_DATE', { ascending: false })
+
+    if (error) throw error
+    fiscalYears.value = data
+
+    // Select the active fiscal year by default (you might need to adjust this based on your actual data structure)
+    const activeFY = data[0] // or implement your own logic to determine active fiscal year
+    if (activeFY) {
+      selectedFiscalYear.value = activeFY
+    }
+  } catch (error) {
+    console.error('Error fetching fiscal years:', error)
+    Notify.create({
+      type: 'negative',
+      message: 'Failed to load fiscal years',
+      position: 'top'
+    })
+  }
+})
 
 const handleLogin = async () => {
+  if (!selectedFiscalYear.value) {
+    Notify.create({
+      type: 'negative',
+      message: 'Please select a fiscal year',
+      position: 'top'
+    })
+    return
+  }
+
   try {
-    await authStore.signIn(email.value, password.value)
+    await authStore.signIn(email.value, password.value, selectedFiscalYear.value)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Login failed'
     Notify.create({
@@ -108,5 +153,13 @@ button:disabled {
   left: 50%;
   transform: translate(-50%, -25%);
   font-weight: 900;
+}
+
+.fiscal-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
 }
 </style>

@@ -5,15 +5,8 @@
     </div>
 
     <!-- Projects Table -->
-    <q-table
-      :rows="projects"
-      :columns="columns"
-      row-key="ID"
-      :loading="loading"
-      flat
-      bordered
-      :rows-per-page-options="[10]"
-    >
+    <q-table :rows="projects" :columns="columns" row-key="ID" :loading="loading" flat bordered
+      :rows-per-page-options="[10]">
       <template v-slot:body="props">
         <q-tr :props="props">
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
@@ -29,17 +22,8 @@
         <q-tr v-if="props.row.banks?.length" :props="props">
           <q-td colspan="100%">
             <div class="text-left">
-              <q-table
-                :rows="props.row.banks"
-                :columns="bankColumns"
-                row-key="BANK_CODE"
-                flat
-                bordered
-                dense
-                hide-bottom
-                :pagination="{ rowsPerPage: 0 }"
-                class="q-mx-sm"
-              />
+              <q-table :rows="props.row.banks" :columns="bankColumns" row-key="BANK_CODE" flat bordered dense
+                hide-bottom :pagination="{ rowsPerPage: 0 }" class="q-mx-sm" />
             </div>
           </q-td>
         </q-tr>
@@ -66,13 +50,8 @@
 
         <q-card-section>
           <q-form @submit="saveProject">
-            <q-input
-              outlined
-              v-model="formData.NAME"
-              label="Project Name"
-              :rules="[(val) => !!val || 'Name is required']"
-              class="q-mb-sm"
-            />
+            <q-input outlined v-model="formData.NAME" label="Project Name"
+              :rules="[(val) => !!val || 'Name is required']" class="q-mb-sm" />
             <q-input outlined v-model="formData.ADDRESS" label="Address" class="q-mb-md" />
             <div class="row justify-end">
               <q-btn label="Cancel" flat v-close-popup />
@@ -174,6 +153,10 @@ const projectToDelete = ref<null | Project>(null)
 // Methods
 const fetchProjects = async () => {
   try {
+    if (!user.value?.id) {
+      throw new Error('User not authenticated')
+    }
+
     loading.value = true
     const { data, error } = await supabase
       .from('PROJECTS')
@@ -183,6 +166,7 @@ const fetchProjects = async () => {
         banks:BANKS!PROJECT_ID(*)
       `,
       )
+      .eq('USER_ID', user.value.id)
       .order('CREATED_AT', { ascending: false })
 
     if (error) throw error

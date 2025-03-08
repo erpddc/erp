@@ -22,7 +22,7 @@ const accountingRoutes = [
   },
   {
     path: '/accounting/ob',
-    name: 'budget',
+    name: 'opening-balance',
     title: 'Opening Balance',
     icon: 'balance',
     component: () => import('src/pages/accounting/OpeningBalance.vue'),
