@@ -259,7 +259,7 @@ const loadJournals = async () => {
   }
 }
 
-const onPaginationChange = (newPagination: {
+const onPaginationChange = async (newPagination: {
   sortBy: string | null
   descending: boolean
   page: number
@@ -267,7 +267,7 @@ const onPaginationChange = (newPagination: {
   rowsNumber?: number
 }) => {
   pagination.value = newPagination as typeof pagination.value
-  loadJournals()
+  await loadJournals()
 }
 
 // const editJournal = (journal: JV) => {
@@ -317,12 +317,12 @@ onMounted(async () => {
   await loadJournals()
 })
 
-// Replace watchEffect with watch
+// Replace watchEffect with watch and handle the promise
 watch(
   filters,
-  () => {
+  async () => {
     pagination.value.page = 1
-    loadJournals()
+    await loadJournals()
   },
   { deep: true },
 )

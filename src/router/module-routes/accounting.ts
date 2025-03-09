@@ -58,7 +58,7 @@ const accountingRoutes = [
   {
     path: '/accounting/journal',
     name: 'journal-entries',
-    title: 'Journal Entries Listing',
+    title: 'Entries Listing',
     icon: 'edit_note',
     component: () => import('src/pages/accounting/JournalEntriesListing.vue'),
     meta: { requiresAuth: true, module: moduleType, title: 'Journal Entries Listing' },

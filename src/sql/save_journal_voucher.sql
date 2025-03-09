@@ -34,13 +34,23 @@ BEGIN
       "AC_CODE",
       "DR",
       "CR",
-      "NOTES"
+      "NOTES",
+      "CHECK",
+      "PAYMENT_METHOD",
+      "CHECK_DATE"
     ) VALUES (
       p_voucher_no,
       (v_detail->>'ac_code')::TEXT,
       (v_detail->>'dr')::NUMERIC,
       (v_detail->>'cr')::NUMERIC,
-      v_detail->>'notes'
+      v_detail->>'notes',
+      v_detail->>'check',
+      v_detail->>'payment_method',
+      CASE 
+        WHEN v_detail->>'check_date' IS NOT NULL 
+        THEN (v_detail->>'check_date')::DATE 
+        ELSE NULL 
+      END
     );
   END LOOP;
 END;
