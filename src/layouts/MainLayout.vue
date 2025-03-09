@@ -6,19 +6,29 @@
 
         <q-toolbar-title>
           <img src="/ddc_white.png" style="width: 50px; height: auto; margin-right: 30px" />
-          <span style="
+          <span
+            style="
               color: #f4ebd0;
               font-size: 14px;
               text-transform: uppercase;
               font-weight: bold;
               letter-spacing: 2px;
-            ">{{ route.meta.title || APP_NAME }}</span>
+            "
+            >{{ route.meta.title || APP_NAME }}</span
+          >
         </q-toolbar-title>
 
         <q-btn flat dense class="bg-secondary q-px-sm text-white rounded-borders q-mr-md">
           <div class="row items-center">
             <q-icon name="event" class="q-mr-xs" />
             <span>{{ authStore.currentFiscalYear?.NAME || 'No FY Selected' }}</span>
+          </div>
+        </q-btn>
+
+        <q-btn flat dense class="bg-secondary q-px-sm text-white rounded-borders q-mr-md">
+          <div class="row items-center">
+            <q-icon name="business" class="q-mr-xs" />
+            <span>{{ authStore.currentProject?.NAME || 'No Project Selected' }}</span>
           </div>
         </q-btn>
 
@@ -52,7 +62,14 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered :width="200" class="custom-drawer q-pb-lg">
+    <q-drawer
+      show-if-above
+      v-model="leftDrawerOpen"
+      side="left"
+      bordered
+      :width="200"
+      class="custom-drawer q-pb-lg"
+    >
       <q-list dense separator class="q-py-none">
         <q-item-label header class="q-py-sm">{{ moduleLabel }}</q-item-label>
         <EssentialLink v-for="link in filteredAllRoutes" :key="link.title" v-bind="link" />
@@ -60,13 +77,31 @@
       <!-- {{ filteredAllRoutes }} -->
     </q-drawer>
 
-    <q-drawer v-model="rightDrawerOpen" side="right" bordered show-if-above :mini="miniState"
-      @mouseenter="miniState = false" @mouseleave="miniState = true" :width="200" :breakpoint="500"
-      class="bg-primary text-white" persistent>
+    <q-drawer
+      v-model="rightDrawerOpen"
+      side="right"
+      bordered
+      show-if-above
+      :mini="miniState"
+      @mouseenter="miniState = false"
+      @mouseleave="miniState = true"
+      :width="200"
+      :breakpoint="500"
+      class="bg-primary text-white"
+      persistent
+    >
       <q-list>
-        <q-item v-for="moduleItem in modules" :key="moduleItem.name" clickable :to="moduleItem.path" :active="moduleItem.path === '/' ? $route.path === '/' : $route.path.startsWith(moduleItem.path)
-          " active-class="bg-secondary text-white"
-          @click="changeMenu(moduleItem.path, moduleItem.label, moduleItem.name as ModuleName)">
+        <q-item
+          v-for="moduleItem in modules"
+          :key="moduleItem.name"
+          clickable
+          :to="moduleItem.path"
+          :active="
+            moduleItem.path === '/' ? $route.path === '/' : $route.path.startsWith(moduleItem.path)
+          "
+          active-class="bg-secondary text-white"
+          @click="changeMenu(moduleItem.path, moduleItem.label, moduleItem.name as ModuleName)"
+        >
           <q-item-section avatar>
             <q-icon :name="moduleItem.icon" />
           </q-item-section>
@@ -143,7 +178,9 @@ watch(
 )
 
 const filteredAllRoutes = computed(() => {
-  return allRoutes.filter((item) => item.meta.module === module.value)
+  return allRoutes.filter(
+    (item) => item.meta.module === module.value && item.meta.display !== false,
+  )
 })
 
 function changeMenu(path: string, label: string, name: ModuleName) {
@@ -182,7 +219,6 @@ useMeta(() => {
 
 <style>
 .custom-drawer {
-
   /* Hide scrollbar completely by default */
   &::-webkit-scrollbar {
     width: 0;

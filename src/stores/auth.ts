@@ -4,6 +4,7 @@ import type { User, AuthError, Session } from '@supabase/supabase-js'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Fiscal } from 'src/models/Fiscal'
+import type { Project } from 'src/models/Project'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -11,6 +12,7 @@ export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   const isInitialized = ref(false)
   const currentFiscalYear = ref<Fiscal | null>(null)
+  const currentProject = ref<Project | null>(null)
 
   const initialize = async () => {
     if (isInitialized.value) return
@@ -31,6 +33,12 @@ export const useAuthStore = defineStore('auth', () => {
         currentFiscalYear.value = JSON.parse(savedFiscalYear)
       }
 
+      // Restore project from localStorage if exists
+      const savedProject = localStorage.getItem('currentProject')
+      if (savedProject) {
+        currentProject.value = JSON.parse(savedProject)
+      }
+
       // Listen for auth changes
       supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
         user.value = session?.user ?? null
@@ -42,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const signIn = async (email: string, password: string, fiscalYear: Fiscal) => {
+  const signIn = async (email: string, password: string, fiscalYear: Fiscal, project: Project) => {
     try {
       loading.value = true
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -55,8 +63,10 @@ export const useAuthStore = defineStore('auth', () => {
       if (data.user) {
         user.value = data.user
         currentFiscalYear.value = fiscalYear
-        // Save fiscal year to localStorage
+        currentProject.value = project
+        // Save fiscal year and project to localStorage
         localStorage.setItem('currentFiscalYear', JSON.stringify(fiscalYear))
+        localStorage.setItem('currentProject', JSON.stringify(project))
         await router.push('/') // await the navigation
       }
     } catch (error) {
@@ -75,7 +85,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       user.value = null
       currentFiscalYear.value = null
+      currentProject.value = null
       localStorage.removeItem('currentFiscalYear')
+      localStorage.removeItem('currentProject')
       await router.push('/login')
     } catch (error) {
       console.error('Error:', error)
@@ -92,5 +104,6 @@ export const useAuthStore = defineStore('auth', () => {
     signIn,
     signOut,
     currentFiscalYear,
+    currentProject,
   }
 })

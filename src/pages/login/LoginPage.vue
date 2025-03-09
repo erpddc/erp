@@ -2,8 +2,7 @@
   <div class="erp" :style="`transform: translate(-50%, ${yt});`">ERP</div>
   <div class="login-container">
     <form @submit.prevent="handleLogin" class="login-form text-center bg-white">
-
-      <img src="/public/ddc.svg" alt="DDC Logo" style="width: 75%; margin: 30px auto;">
+      <img src="/public/ddc.svg" alt="DDC Logo" style="width: 75%; margin: 30px auto" />
       <div class="form-group text-left">
         <label for="email">Email</label>
         <input type="email" id="email" v-model="email" required />
@@ -20,7 +19,18 @@
           </option>
         </select>
       </div>
-      <button type="submit" :disabled="authStore.loading || !selectedFiscalYear">
+      <div class="form-group left">
+        <label for="project">Project</label>
+        <select id="project" v-model="selectedProject" required class="fiscal-select">
+          <option v-for="proj in projects" :key="proj.ID" :value="proj">
+            {{ proj.NAME }}
+          </option>
+        </select>
+      </div>
+      <button
+        type="submit"
+        :disabled="authStore.loading || !selectedFiscalYear || !selectedProject"
+      >
         {{ authStore.loading ? 'Loading...' : 'Login' }}
       </button>
     </form>
@@ -34,15 +44,16 @@ import { Notify, useMeta } from 'quasar'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/boot/supabase'
 import type { Fiscal } from 'src/models/Fiscal'
+import type { Project } from 'src/models/Project'
 
 const $q = useQuasar()
 console.log($q)
 
-const yt = ref('-25%');
+const yt = ref('-25%')
 if ($q.screen.lg) yt.value = '0%'
 
 useMeta({
-  title: 'Login | ERP.DDC'
+  title: 'Login | ERP.DDC',
 })
 
 const authStore = useAuthStore()
@@ -50,28 +61,46 @@ const email = ref('')
 const password = ref('')
 const fiscalYears = ref<Fiscal[]>([])
 const selectedFiscalYear = ref<Fiscal | null>(null)
+const projects = ref<Project[]>([])
+const selectedProject = ref<Project | null>(null)
 
 onMounted(async () => {
   try {
-    const { data, error } = await supabase
+    // Fetch fiscal years
+    const { data: fiscalData, error: fiscalError } = await supabase
       .from('FISCALS')
       .select('*')
       .order('START_DATE', { ascending: false })
 
-    if (error) throw error
-    fiscalYears.value = data
+    if (fiscalError) throw fiscalError
+    fiscalYears.value = fiscalData
 
-    // Select the active fiscal year by default (you might need to adjust this based on your actual data structure)
-    const activeFY = data[0] // or implement your own logic to determine active fiscal year
+    // Select the active fiscal year by default
+    const activeFY = fiscalData[0]
     if (activeFY) {
       selectedFiscalYear.value = activeFY
     }
+
+    // Fetch projects
+    const { data: projectData, error: projectError } = await supabase
+      .from('PROJECTS')
+      .select('*')
+      .order('NAME', { ascending: true })
+
+    if (projectError) throw projectError
+    projects.value = projectData
+
+    // Select the first project by default
+    const firstProject = projectData[0]
+    if (firstProject) {
+      selectedProject.value = firstProject
+    }
   } catch (error) {
-    console.error('Error fetching fiscal years:', error)
+    console.error('Error fetching data:', error)
     Notify.create({
       type: 'negative',
-      message: 'Failed to load fiscal years',
-      position: 'top'
+      message: 'Failed to load initial data',
+      position: 'top',
     })
   }
 })
@@ -81,19 +110,33 @@ const handleLogin = async () => {
     Notify.create({
       type: 'negative',
       message: 'Please select a fiscal year',
-      position: 'top'
+      position: 'top',
+    })
+    return
+  }
+
+  if (!selectedProject.value) {
+    Notify.create({
+      type: 'negative',
+      message: 'Please select a project',
+      position: 'top',
     })
     return
   }
 
   try {
-    await authStore.signIn(email.value, password.value, selectedFiscalYear.value)
+    await authStore.signIn(
+      email.value,
+      password.value,
+      selectedFiscalYear.value,
+      selectedProject.value,
+    )
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Login failed'
     Notify.create({
       type: 'negative',
       message: errorMessage,
-      position: 'top'
+      position: 'top',
     })
   }
 }
@@ -134,7 +177,7 @@ const handleLogin = async () => {
 button {
   width: 100%;
   padding: 0.75rem;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;

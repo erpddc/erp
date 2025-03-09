@@ -18,6 +18,8 @@ import type { ModuleName } from 'src/config/modules'
 type RouteMeta = {
   requiresAuth: boolean
   module: ModuleName
+  title?: string
+  display?: boolean
 }
 
 export type TRoute = {
