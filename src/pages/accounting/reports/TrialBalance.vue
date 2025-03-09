@@ -33,6 +33,16 @@
         </q-input>
       </div>
       <div class="col-12 col-sm-6 col-md-3">
+        <q-input v-model="filters.search" label="Search Accounts" outlined dense clearable>
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3 flex items-center">
+        <q-toggle v-model="filters.showSummaryOnly" label="Show Summary Only" />
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
         <q-btn
           color="primary"
           icon="refresh"
@@ -52,9 +62,15 @@
       </div>
     </div>
 
+    <div class="row q-col-gutter-md q-mb-md justify-between">
+      <div class="col-auto">
+        <q-btn color="secondary" icon="download" label="Export to Excel" @click="exportToExcel" />
+      </div>
+    </div>
+
     <!-- Trial Balance Table -->
     <q-table
-      :rows="trialBalanceData"
+      :rows="filteredData"
       :columns="columns"
       row-key="AC_CODE"
       :loading="loading"
@@ -167,6 +183,8 @@ const expanded = ref<string[]>([])
 const filters = ref({
   dateFrom: '',
   dateTo: '',
+  search: '',
+  showSummaryOnly: false,
 })
 
 const buildTree = (accounts: TrialBalanceRow[]): TrialBalanceRow[] => {
@@ -175,28 +193,63 @@ const buildTree = (accounts: TrialBalanceRow[]): TrialBalanceRow[] => {
 
   // First pass: Create all nodes and store in map
   accounts.forEach((account) => {
-    nodeMap.set(account.AC_CODE, { ...account, children: [], isParent: false })
+    nodeMap.set(account.AC_CODE, {
+      ...account,
+      children: [],
+      isParent: false,
+      TOTAL_DR: account.TOTAL_DR || 0,
+      TOTAL_CR: account.TOTAL_CR || 0,
+      OPENING_BALANCE: account.OPENING_BALANCE || 0,
+      CLOSING_BALANCE: account.CLOSING_BALANCE || 0,
+    })
   })
 
-  // Second pass: Build the tree
+  // Second pass: Build the tree and aggregate totals bottom-up
   accounts.forEach((account) => {
     const node = nodeMap.get(account.AC_CODE)
     if (node) {
       if (account.PARENT_ACCOUNT && nodeMap.has(account.PARENT_ACCOUNT)) {
         const parent = nodeMap.get(account.PARENT_ACCOUNT)
         if (parent) {
+          // Add this node as child
           parent.children?.push(node)
           parent.isParent = true
-          // Aggregate totals to parent
-          parent.TOTAL_DR = (parent.TOTAL_DR || 0) + (node.TOTAL_DR || 0)
-          parent.TOTAL_CR = (parent.TOTAL_CR || 0) + (node.TOTAL_CR || 0)
-          parent.OPENING_BALANCE = (parent.OPENING_BALANCE || 0) + (node.OPENING_BALANCE || 0)
-          parent.CLOSING_BALANCE = (parent.CLOSING_BALANCE || 0) + (node.CLOSING_BALANCE || 0)
         }
       } else {
         tree.push(node)
       }
     }
+  })
+
+  // Third pass: Aggregate totals from bottom up
+  const aggregateTotals = (node: TrialBalanceRow) => {
+    if (!node.children?.length) {
+      return {
+        TOTAL_DR: node.TOTAL_DR || 0,
+        TOTAL_CR: node.TOTAL_CR || 0,
+        OPENING_BALANCE: node.OPENING_BALANCE || 0,
+        CLOSING_BALANCE: node.CLOSING_BALANCE || 0,
+      }
+    }
+
+    const childTotals = node.children.map((child) => aggregateTotals(child))
+
+    node.TOTAL_DR = childTotals.reduce((sum, child) => sum + child.TOTAL_DR, 0)
+    node.TOTAL_CR = childTotals.reduce((sum, child) => sum + child.TOTAL_CR, 0)
+    node.OPENING_BALANCE = childTotals.reduce((sum, child) => sum + child.OPENING_BALANCE, 0)
+    node.CLOSING_BALANCE = childTotals.reduce((sum, child) => sum + child.CLOSING_BALANCE, 0)
+
+    return {
+      TOTAL_DR: node.TOTAL_DR,
+      TOTAL_CR: node.TOTAL_CR,
+      OPENING_BALANCE: node.OPENING_BALANCE,
+      CLOSING_BALANCE: node.CLOSING_BALANCE,
+    }
+  }
+
+  // Aggregate totals for each root node
+  tree.forEach((node) => {
+    aggregateTotals(node)
   })
 
   return tree
@@ -378,6 +431,19 @@ const loadTrialBalance = async () => {
 
       const closingBalance = openingBalance + totalDr - totalCr
 
+      // Log for debugging
+      if (account.AC_CODE === 'A000000000000' || account.AC_CODE === 'A002000000000') {
+        console.log('Processing account:', {
+          AC_CODE: account.AC_CODE,
+          AC_NAME: account.AC_NAME,
+          openingBalance,
+          totalDr,
+          totalCr,
+          closingBalance,
+          transactionCount: accountTransactions.length,
+        })
+      }
+
       return {
         ...account,
         OPENING_BALANCE: openingBalance,
@@ -389,6 +455,22 @@ const loadTrialBalance = async () => {
 
     // Build the tree structure
     trialBalanceData.value = buildTree(processedData)
+
+    // Log the final tree structure for debugging
+    console.log(
+      'Final tree structure:',
+      trialBalanceData.value
+        .filter((node) => node.AC_CODE === 'A000000000000' || node.AC_CODE === 'A002000000000')
+        .map((node) => ({
+          AC_CODE: node.AC_CODE,
+          AC_NAME: node.AC_NAME,
+          TOTAL_DR: node.TOTAL_DR,
+          TOTAL_CR: node.TOTAL_CR,
+          OPENING_BALANCE: node.OPENING_BALANCE,
+          CLOSING_BALANCE: node.CLOSING_BALANCE,
+          childCount: node.children?.length,
+        })),
+    )
   } catch (err) {
     console.error('Error loading trial balance:', err)
     $q.notify({
@@ -405,6 +487,124 @@ const expandAll = () => {
     .filter((account) => account.isParent)
     .map((account) => account.AC_CODE)
   expanded.value = allParentCodes
+}
+
+const filteredData = computed(() => {
+  let data = trialBalanceData.value
+
+  // Apply search filter
+  if (filters.value.search) {
+    const searchTerm = filters.value.search.toLowerCase()
+    data = data.filter((account) => {
+      const matchesSearch =
+        account.AC_CODE.toLowerCase().includes(searchTerm) ||
+        account.AC_NAME.toLowerCase().includes(searchTerm)
+
+      // If parent matches search, include it and all children
+      if (matchesSearch) return true
+
+      // If any child matches search, include parent and matching child
+      if (
+        account.children?.some(
+          (child) =>
+            child.AC_CODE.toLowerCase().includes(searchTerm) ||
+            child.AC_NAME.toLowerCase().includes(searchTerm),
+        )
+      ) {
+        return true
+      }
+
+      return false
+    })
+  }
+
+  // Apply summary filter
+  if (filters.value.showSummaryOnly) {
+    data = data.filter((account) => account.isParent)
+  }
+
+  return data
+})
+
+const exportToExcel = () => {
+  type RowType = {
+    'Account Code': string
+    'Account Name': string
+    'Opening Balance': number
+    'Total Debit': number
+    'Total Credit': number
+    'Closing Balance': number
+  }
+
+  const rows: RowType[] = []
+
+  // Helper function to add rows recursively
+  const addRow = (account: TrialBalanceRow, level = 0) => {
+    const row: RowType = {
+      'Account Code': account.AC_CODE,
+      'Account Name': '    '.repeat(level) + account.AC_NAME + (account.isParent ? ' (Group)' : ''),
+      'Opening Balance': account.OPENING_BALANCE || 0,
+      'Total Debit': account.TOTAL_DR || 0,
+      'Total Credit': account.TOTAL_CR || 0,
+      'Closing Balance': account.CLOSING_BALANCE || 0,
+    }
+    rows.push(row)
+
+    if (account.children) {
+      account.children.forEach((child) => addRow(child, level + 1))
+    }
+  }
+
+  // Add all accounts
+  filteredData.value.forEach((account) => addRow(account))
+
+  // Add totals row
+  const totalRow: RowType = {
+    'Account Code': '',
+    'Account Name': 'Total',
+    'Opening Balance': totals.value.openingBalance,
+    'Total Debit': totals.value.totalDr,
+    'Total Credit': totals.value.totalCr,
+    'Closing Balance': totals.value.closingBalance,
+  }
+  rows.push(totalRow)
+
+  if (rows.length === 0) {
+    $q.notify({
+      type: 'warning',
+      message: 'No data to export',
+    })
+    return
+  }
+
+  // Define headers explicitly to maintain type safety
+  const headers = [
+    'Account Code',
+    'Account Name',
+    'Opening Balance',
+    'Total Debit',
+    'Total Credit',
+    'Closing Balance',
+  ] as const
+
+  // Convert to CSV
+  const csvContent =
+    'data:text/csv;charset=utf-8,' +
+    headers.join(',') +
+    '\n' +
+    rows.map((row) => headers.map((header) => row[header].toString()).join(',')).join('\n')
+
+  // Create download link
+  const encodedUri = encodeURI(csvContent)
+  const link = document.createElement('a')
+  link.setAttribute('href', encodedUri)
+  link.setAttribute(
+    'download',
+    `trial_balance_${filters.value.dateFrom}_${filters.value.dateTo}.csv`,
+  )
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 onMounted(() => {
