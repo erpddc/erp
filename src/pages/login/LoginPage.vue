@@ -4,33 +4,20 @@
     <form @submit.prevent="handleLogin" class="login-form text-center bg-white">
       <img src="/public/ddc.svg" alt="DDC Logo" style="width: 75%; margin: 30px auto" />
       <div class="form-group text-left">
-        <label for="email">Email</label>
-        <input type="email" id="email" v-model="email" required />
+        <q-input filled dense v-model="email" label="Email" type="email" required />
       </div>
-      <div class="form-group left">
-        <label for="password">Password</label>
-        <input type="password" id="password" v-model="password" required />
+      <div class="form-group text-left">
+        <q-input filled dense v-model="password" label="Password" type="password" required />
       </div>
-      <div class="form-group left">
-        <label for="fiscalYear">Fiscal Year</label>
-        <select id="fiscalYear" v-model="selectedFiscalYear" required class="fiscal-select">
-          <option v-for="fy in fiscalYears" :key="fy.ID" :value="fy">
-            {{ fy.NAME }}
-          </option>
-        </select>
+      <div class="form-group text-left">
+        <q-select filled dense v-model="selectedFiscalYear" :options="fiscalYears" label="Fiscal Year"
+          option-label="NAME" option-value="ID" required />
       </div>
-      <div class="form-group left">
-        <label for="project">Project</label>
-        <select id="project" v-model="selectedProject" required class="fiscal-select">
-          <option v-for="proj in projects" :key="proj.ID" :value="proj">
-            {{ proj.NAME }}
-          </option>
-        </select>
+      <div class="form-group text-left">
+        <q-select filled dense v-model="selectedProject" :options="projects" label="Project" option-label="NAME"
+          option-value="ID" required />
       </div>
-      <button
-        type="submit"
-        :disabled="authStore.loading || !selectedFiscalYear || !selectedProject"
-      >
+      <button type="submit" :disabled="authStore.loading || !selectedFiscalYear || !selectedProject">
         {{ authStore.loading ? 'Loading...' : 'Login' }}
       </button>
     </form>
@@ -47,7 +34,7 @@ import type { Fiscal } from 'src/models/Fiscal'
 import type { Project } from 'src/models/Project'
 
 const $q = useQuasar()
-console.log($q)
+
 
 const yt = ref('-25%')
 if ($q.screen.lg) yt.value = '0%'
@@ -164,10 +151,11 @@ const handleLogin = async () => {
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
-.form-group input {
+.form-group input,
+.fiscal-select {
   width: 100%;
   padding: 0.5rem;
   border: 1px solid #ddd;
@@ -196,13 +184,5 @@ button:disabled {
   left: 50%;
   transform: translate(-50%, -25%);
   font-weight: 900;
-}
-
-.fiscal-select {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
 }
 </style>
